@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Planner - Weekly Schedule</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">MP</div>
+        <div>
+          <h1>Meal Planner</h1>
+          <p class="subtitle">Weekly Meal Schedule</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-ref" onclick="toggleCalRef()" title="Referensi Kalori">Ref. Kalori</button>
+        <button class="btn-add" onclick="toggleForm()" id="btnAdd">+ Tambah Meal</button>
+        <div class="clock" id="clock">--:--:-- WIB</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- FORM TAMBAH MEAL -->
+  <div class="form-overlay" id="formOverlay" onclick="toggleForm()"></div>
+  <div class="form-panel" id="formPanel">
+    <div class="form-header">
+      <h2 id="formTitle">Tambah Meal</h2>
+      <button class="btn-close" onclick="toggleForm()">&times;</button>
+    </div>
+    <form id="mealForm" onsubmit="saveMeal(event)">
+      <input type="hidden" id="fEditId" value="">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hari</label>
+          <select id="fDay" required>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+            <option value="Minggu">Minggu</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Jam (WIB)</label>
+          <input type="time" id="fTime" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipe</label>
+          <select id="fType" required>
+            <option value="breakfast">Sarapan (Pagi)</option>
+            <option value="lunch">Makan Siang</option>
+            <option value="snack">Snack (Sore)</option>
+            <option value="dinner">Makan Malam</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Kalori (kcal) <span class="hint">lihat Ref. Kalori</span></label>
+          <input type="number" id="fCal" min="0" max="5000" placeholder="cth: 450" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nama Makanan</label>
+        <input type="text" id="fName" placeholder="cth: Nasi Goreng Kampung" required maxlength="100">
+      </div>
+      <div class="form-group">
+        <label>Deskripsi / Komposisi</label>
+        <input type="text" id="fDesc" placeholder="cth: Nasi goreng kecap, telur, ayam suwir, kerupuk" maxlength="200">
+      </div>
+      <div class="form-buttons">
+        <button type="button" class="btn-cancel" onclick="toggleForm()">Batal</button>
+        <button type="submit" class="btn-submit">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- REFERENSI KALORI -->
+  <div class="form-overlay" id="refOverlay" onclick="toggleCalRef()"></div>
+  <div class="ref-panel" id="refPanel">
+    <div class="form-header">
+      <h2>Referensi Kalori Makanan</h2>
+      <button class="btn-close" onclick="toggleCalRef()">&times;</button>
+    </div>
+    <div class="ref-search">
+      <input type="text" id="refSearch" placeholder="Cari makanan..." oninput="filterRef()">
+    </div>
+    <div class="ref-list" id="refList"></div>
+    <p class="ref-note">* Estimasi per porsi standar. Kalori aktual bervariasi tergantung porsi dan cara masak.</p>
+  </div>
+
+  <main>
+    <section class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value" id="totalMeals">0</span>
+        <span class="stat-label">Total Meals</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="todayCalories">0</span>
+        <span class="stat-label">Cal Today</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="currentDay">--</span>
+        <span class="stat-label">Today</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="nextMeal">--</span>
+        <span class="stat-label">Next Meal</span>
+      </div>
+    </section>
+
+    <nav class="day-tabs" id="dayTabs"></nav>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <p class="empty-title">Belum ada jadwal makan untuk hari ini</p>
+      <p class="empty-sub">Klik "+ Tambah Meal" untuk mulai menambah menu</p>
+    </div>
+
+    <section class="schedule-container" id="scheduleContainer"></section>
+
+    <section class="week-overview">
+      <h2>Weekly Overview</h2>
+      <div class="overview-grid" id="overviewGrid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-actions">
+      <button class="btn-export" onclick="exportData()">Export JSON</button>
+      <label class="btn-import">Import JSON<input type="file" accept=".json" onchange="importData(event)" hidden></label>
+      <button class="btn-clear-day" onclick="clearDay()">Hapus Hari Ini</button>
+      <button class="btn-danger" onclick="resetAll()">Reset Semua</button>
+    </div>
+    <p>Meal Planner v1.0 &mdash; Deployed on K3s via GitHub Actions</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
