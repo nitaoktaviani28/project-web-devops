@@ -61,15 +61,16 @@ jobs:
           ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} "rm -rf /home/ubuntu/k8s && mkdir -p /home/ubuntu/k8s"
           scp -i ~/.ssh/deployer k8s/*.yaml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/k8s/
           ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} << 'DEPLOY'
-            sudo kubectl create secret docker-registry dockerhub-secret \
+            export KUBECONFIG=$(sudo k3d kubeconfig write mycluster)
+            kubectl create secret docker-registry dockerhub-secret \
               --docker-server=https://index.docker.io/v1/ \
               --docker-username=${{ secrets.DOCKERHUB_USERNAME }} \
               --docker-password=${{ secrets.DOCKERHUB_TOKEN }} \
-              --dry-run=client -o yaml | sudo kubectl apply -f -
-            sudo kubectl apply -f /home/ubuntu/k8s/
-            sudo kubectl rollout status deployment/devops-demo-app --timeout=120s
-            sudo kubectl get pods -l app=devops-demo-app
-            sudo kubectl get svc devops-demo-app
+              --dry-run=client -o yaml | kubectl apply -f -
+            kubectl apply -f /home/ubuntu/k8s/
+            kubectl rollout status deployment/devops-demo-app --timeout=120s
+            kubectl get pods -l app=devops-demo-app
+            kubectl get svc devops-demo-app
           DEPLOY
 
       - name: Verify deployment
