@@ -61,7 +61,7 @@ jobs:
           ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} "rm -rf /home/ubuntu/k8s && mkdir -p /home/ubuntu/k8s"
           scp -i ~/.ssh/deployer k8s/*.yaml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/k8s/
           ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} << 'DEPLOY'
-            export KUBECONFIG=$(sudo k3d kubeconfig write mycluster)
+            export KUBECONFIG=/home/ubuntu/.kube/config
             kubectl create secret docker-registry dockerhub-secret \
               --docker-server=https://index.docker.io/v1/ \
               --docker-username=${{ secrets.DOCKERHUB_USERNAME }} \
