@@ -45,4 +45,4 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 10
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: dockerhub-secret
