@@ -1,7 +1,3 @@
-// ============================================
-// Meal Planner - Full CRUD + LocalStorage
-// ============================================
-
 const DEFAULT_DATA = {
   Senin: [
     { id: "s1", time: "07:00", type: "breakfast", name: "Nasi Uduk Komplit", desc: "Nasi uduk, ayam goreng serundeng, telur balado, sambal kacang, kerupuk", cal: 520 },
@@ -144,7 +140,7 @@ const TYPE_LABELS = { breakfast: "Pagi", lunch: "Siang", snack: "Sore", dinner: 
 let mealData = {};
 let currentDay = "";
 
-// --- Storage ---
+// Storage 
 function loadData() {
   const saved = localStorage.getItem("mealPlannerData");
   if (saved) {
@@ -163,7 +159,7 @@ function genId() {
   return "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-// --- Clock ---
+// Clock 
 function updateClock() {
   const now = new Date();
   const wib = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
@@ -177,7 +173,7 @@ function getTodayName() {
   return JS_DAY_MAP[new Date().getDay()] || "Senin";
 }
 
-// --- Render ---
+// Render
 function renderTabs() {
   const container = document.getElementById("dayTabs");
   const today = getTodayName();
@@ -256,7 +252,7 @@ function selectDay(day) {
   updateStats();
 }
 
-// --- CRUD ---
+// CRUD
 function toggleForm() {
   const panel = document.getElementById("formPanel");
   const overlay = document.getElementById("formOverlay");
@@ -341,7 +337,7 @@ function resetAll() {
   selectDay(currentDay);
 }
 
-// --- Calorie Reference ---
+// Calorie Reference 
 function toggleCalRef() {
   const panel = document.getElementById("refPanel");
   const overlay = document.getElementById("refOverlay");
@@ -386,7 +382,7 @@ function fillCalorie(cal, name) {
   toggleCalRef();
 }
 
-// --- Import / Export ---
+// Import / Export 
 function exportData() {
   const blob = new Blob([JSON.stringify(mealData, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -418,7 +414,7 @@ function importData(e) {
   e.target.value = "";
 }
 
-// --- Helpers ---
+// Helpers 
 function escHtml(s) {
   const d = document.createElement("div");
   d.textContent = s;
@@ -429,7 +425,7 @@ function escAttr(s) {
   return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-// --- Init ---
+// Init 
 document.addEventListener("DOMContentLoaded", () => {
   loadData();
   currentDay = getTodayName();
