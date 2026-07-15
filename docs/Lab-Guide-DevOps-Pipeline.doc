@@ -1,0 +1,412 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<meta name="ProgId" content="Word.Document">
+<meta name="Generator" content="Microsoft Word 15">
+<meta name="Originator" content="Microsoft Word 15">
+<!--[if gte mso 9]>
+<xml>
+<o:DocumentProperties>
+<o:Title>Lab Guide - DevOps Pipeline</o:Title>
+</o:DocumentProperties>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+@page { margin: 2.5cm; }
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.6; color: #1a1a1a; }
+h1 { font-size: 20pt; text-align: center; color: #1a5276; border-bottom: 3px solid #1a5276; padding-bottom: 8px; margin-top: 0; }
+h2 { font-size: 15pt; color: #1a5276; border-bottom: 2px solid #d5d8dc; padding-bottom: 4px; margin-top: 24pt; page-break-after: avoid; }
+h3 { font-size: 12pt; color: #2c3e50; margin-top: 16pt; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+th, td { border: 1px solid #2c3e50; padding: 6pt 10pt; font-size: 10pt; }
+th { background-color: #1a5276; color: #ffffff; font-weight: bold; }
+tr:nth-child(even) { background-color: #f2f4f6; }
+pre, code { font-family: Consolas, 'Courier New', monospace; font-size: 9.5pt; }
+pre { background-color: #f4f6f7; border: 1px solid #d5d8dc; padding: 8pt 12pt; margin: 8pt 0; page-break-inside: avoid; }
+code { background-color: #eaecee; padding: 1pt 4pt; }
+.note { background-color: #fef9e7; border-left: 4pt solid #f1c40f; padding: 8pt 12pt; margin: 10pt 0; }
+.warning { background-color: #fdedec; border-left: 4pt solid #e74c3c; padding: 8pt 12pt; margin: 10pt 0; }
+.success { background-color: #eafaf1; border-left: 4pt solid #27ae60; padding: 8pt 12pt; margin: 10pt 0; }
+.center { text-align: center; }
+.subtitle { text-align: center; color: #5d6d7e; font-size: 10pt; margin-bottom: 20pt; }
+ol, ul { margin: 6pt 0; }
+li { margin: 3pt 0; }
+.topo-box { border: 2px solid #2c3e50; padding: 15pt; margin: 15pt 0; background: #fafafa; }
+.topo-table td { border: 2px solid #34495e; padding: 8pt; text-align: center; font-size: 9pt; background: #ecf0f1; }
+.topo-table .arrow { border: none; background: none; font-size: 14pt; color: #e74c3c; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Lab Guide<br>DevOps Pipeline with Terraform, Docker, K3d &amp; GitHub Actions</h1>
+
+<p class="subtitle">
+Disusun oleh: Nita Oktaviani | Juli 2026<br>
+Repository: https://github.com/nitaoktaviani28/project-web-devops
+</p>
+
+<h2>1. Overview</h2>
+
+<p>Lab ini memandu langkah-langkah membangun pipeline DevOps end-to-end. Peserta akan mempelajari provisioning infrastructure di AWS, containerization, Kubernetes deployment, dan CI/CD automation.</p>
+
+<table>
+<tr><th>Tool</th><th>Fungsi</th></tr>
+<tr><td>Terraform</td><td>Provisioning infrastructure (VPC, Security Group, EC2) di AWS</td></tr>
+<tr><td>Docker</td><td>Build container image aplikasi</td></tr>
+<tr><td>K3d</td><td>Lightweight Kubernetes cluster (K3s in Docker)</td></tr>
+<tr><td>GitHub Actions</td><td>CI/CD pipeline (auto build, push, deploy)</td></tr>
+<tr><td>Docker Hub</td><td>Container image registry</td></tr>
+<tr><td>DevFormat</td><td>Web tool untuk generate Terraform, Dockerfile, K8s manifest</td></tr>
+</table>
+
+<h2>2. Topologi Arsitektur</h2>
+
+<div class="topo-box">
+<table class="topo-table" style="width:100%; border-collapse:separate; border-spacing:8pt;">
+<tr>
+<td style="background:#d4e6f1; border-color:#2980b9; width:25%;">
+<strong style="font-size:11pt;">DEVELOPER PC</strong><br><br>
+- VS Code<br>
+- Terraform<br>
+- AWS CLI<br>
+- Git<br><br>
+<em style="color:#7f8c8d; font-size:8pt;">Windows 10/11</em>
+</td>
+<td class="arrow" style="width:8%;">
+&#x2794;<br><span style="font-size:7pt; color:#2c3e50;">git push</span>
+</td>
+<td style="background:#d5f5e3; border-color:#27ae60; width:25%;">
+<strong style="font-size:11pt;">GITHUB ACTIONS</strong><br><br>
+1. Build Docker Image<br>
+2. Push ke Docker Hub<br>
+3. SSH ke EC2<br>
+4. kubectl apply<br><br>
+<em style="color:#7f8c8d; font-size:8pt;">CI/CD Pipeline</em>
+</td>
+<td class="arrow" style="width:8%;">
+&#x2794;<br><span style="font-size:7pt; color:#2c3e50;">SSH deploy</span>
+</td>
+<td style="background:#fdebd0; border-color:#e67e22; width:34%;">
+<strong style="font-size:11pt;">AWS EC2 (t3.medium)</strong><br>
+<em style="font-size:8pt; color:#7f8c8d;">Ubuntu 24.04 | ap-southeast-1</em><br><br>
+<table style="width:90%; margin:4pt auto; border:1.5pt solid #8e44ad; background:#f4ecf7;">
+<tr><td style="border:1pt solid #8e44ad; background:#f4ecf7; text-align:center;">
+<strong style="color:#8e44ad;">K3d Cluster</strong><br>
+<span style="font-size:8pt;">server-0 | agent-0 | agent-1</span><br><br>
+<span style="font-size:8pt; background:#fadbd8; padding:2pt 6pt; border:1pt solid #e74c3c;">Meal Planner App (x3 pods)</span><br>
+<strong style="color:#e74c3c; font-size:9pt;">:30080</strong>
+</td></tr>
+</table>
+</td>
+</tr>
+</table>
+
+<table style="width:100%; border:none; margin-top:10pt;">
+<tr>
+<td style="border:none; text-align:center; width:33%;">
+<span style="background:#d4e6f1; padding:3pt 8pt; border:1pt solid #2980b9; font-size:8pt;">&#x2B07; terraform apply &#x2B07;</span>
+</td>
+<td style="border:none; text-align:center; width:33%;">
+<span style="background:#d5f5e3; padding:3pt 8pt; border:1pt solid #27ae60; font-size:8pt;">&#x2B07; push image &#x2B07;</span>
+</td>
+<td style="border:none; text-align:center; width:33%;">
+<span style="background:#fdebd0; padding:3pt 8pt; border:1pt solid #e67e22; font-size:8pt;">&#x2B06; pull image &#x2B06;</span>
+</td>
+</tr>
+<tr>
+<td style="border:none; text-align:center;">
+<span style="font-size:8pt; color:#5d6d7e;">Developer &rarr; AWS</span>
+</td>
+<td style="border:none; text-align:center;">
+<span style="font-size:8pt; color:#5d6d7e;">GitHub &rarr; Docker Hub</span>
+</td>
+<td style="border:none; text-align:center;">
+<span style="font-size:8pt; color:#5d6d7e;">Docker Hub &rarr; K3d</span>
+</td>
+</tr>
+</table>
+
+<p style="text-align:center; margin-top:12pt; font-size:10pt;"><strong>Flow Pipeline:</strong></p>
+<p style="text-align:center; font-size:9pt; color:#2c3e50;">
+[git push to main] &rarr; [GitHub Actions triggered] &rarr; [Docker Build] &rarr; [Push to Docker Hub with SHA tag] &rarr; [SSH to EC2] &rarr; [kubectl apply] &rarr; [App Live on :30080]
+</p>
+</div>
+
+<h2>3. Prasyarat</h2>
+
+<h3>3.1 Spesifikasi Minimum</h3>
+
+<table>
+<tr><th>Komponen</th><th>Spesifikasi</th></tr>
+<tr><td>PC/Laptop</td><td>Windows 10/11, RAM 4GB+, Internet stabil</td></tr>
+<tr><td>AWS Account</td><td>Free tier atau berbayar, IAM user dengan access key</td></tr>
+<tr><td>EC2 Instance</td><td>t3.medium (2 vCPU, 4GB RAM), Ubuntu 24.04, 20GB gp3 storage</td></tr>
+<tr><td>GitHub Account</td><td>Untuk repository dan GitHub Actions</td></tr>
+<tr><td>Docker Hub Account</td><td>Untuk simpan container image</td></tr>
+</table>
+
+<h3>3.2 Akun yang Harus Disiapkan</h3>
+
+<table>
+<tr><th>Akun</th><th>URL</th><th>Yang Dibutuhkan</th></tr>
+<tr><td>AWS</td><td>https://aws.amazon.com</td><td>Access Key ID + Secret Access Key (dari IAM)</td></tr>
+<tr><td>GitHub</td><td>https://github.com</td><td>Repository + akses Settings untuk Secrets</td></tr>
+<tr><td>Docker Hub</td><td>https://hub.docker.com</td><td>Username + Access Token (dari Security settings)</td></tr>
+</table>
+
+<h2>4. Langkah-langkah Lab</h2>
+
+<h3>STEP 1: Fork Repository</h3>
+
+<div class="note"><strong>Info:</strong> Peserta cukup fork repository, tidak perlu membuat project dari awal.</div>
+
+<ol>
+<li>Buka https://github.com/nitaoktaviani28/project-web-devops</li>
+<li>Klik tombol <strong>Fork</strong> di kanan atas</li>
+<li>Clone repository ke komputer lokal:</li>
+</ol>
+
+<pre>git clone https://github.com/USERNAME_ANDA/project-web-devops.git
+cd project-web-devops</pre>
+
+<h3>STEP 2: Install Tools di PC</h3>
+
+<p>Buka <strong>CMD sebagai Administrator</strong>, lalu jalankan:</p>
+
+<pre>choco install terraform awscli git -y</pre>
+
+<p>Tutup CMD, buka CMD baru, lalu verifikasi:</p>
+
+<pre>terraform --version
+aws --version
+git --version</pre>
+
+<div class="note"><strong>Catatan:</strong> Jika belum punya Chocolatey, install dari https://chocolatey.org/install</div>
+
+<h3>STEP 3: Konfigurasi AWS CLI</h3>
+
+<p>Jalankan di CMD:</p>
+
+<pre>aws configure</pre>
+
+<p>Isi sesuai tabel berikut:</p>
+
+<table>
+<tr><th>Prompt</th><th>Isi dengan</th></tr>
+<tr><td>AWS Access Key ID</td><td>Access Key dari IAM Console AWS</td></tr>
+<tr><td>AWS Secret Access Key</td><td>Secret Key dari IAM Console AWS</td></tr>
+<tr><td>Default region name</td><td>ap-southeast-1</td></tr>
+<tr><td>Default output format</td><td>json</td></tr>
+</table>
+
+<p>Verifikasi credential berhasil:</p>
+
+<pre>aws sts get-caller-identity</pre>
+
+<p>Jika muncul Account ID dan ARN, berarti sudah benar.</p>
+
+<div class="warning"><strong>Troubleshooting:</strong> Jika secret key tidak terinput via <code>aws configure</code>, edit manual file <code>%USERPROFILE%\.aws\credentials</code> menggunakan Notepad.</div>
+
+<h3>STEP 4: Generate SSH Key</h3>
+
+<pre>ssh-keygen -t ed25519 -f %USERPROFILE%\.ssh\vm-demo-key -N "" -C "vm-demo"</pre>
+
+<p>Lihat public key (akan dipakai di Terraform):</p>
+
+<pre>type %USERPROFILE%\.ssh\vm-demo-key.pub</pre>
+
+<p>Output contoh: <code>ssh-ed25519 AAAA...xxxxx vm-demo</code></p>
+
+<h3>STEP 5: Konfigurasi Terraform</h3>
+
+<p>Buat file <code>terraform/terraform.tfvars</code> (file ini sudah di-gitignore):</p>
+
+<pre>name               = "vm-demo"
+vpc_cidr           = "10.0.0.0/16"
+public_subnet_cidr = "10.0.1.0/24"
+availability_zone  = "ap-southeast-1a"
+instance_type      = "t3.medium"
+
+tags = {}
+
+ssh_public_key = "ssh-ed25519 AAAA...paste-public-key-dari-step-4..."</pre>
+
+<div class="warning"><strong>PENTING:</strong> Ganti value <code>ssh_public_key</code> dengan output dari Step 4. Pastikan dalam satu baris.</div>
+
+<h3>STEP 6: Provision Infrastructure dengan Terraform</h3>
+
+<pre>cd terraform
+terraform init
+terraform plan
+terraform apply -auto-approve</pre>
+
+<p>Tunggu hingga selesai. Catat output berikut:</p>
+
+<pre>instance_public_ip = "x.x.x.x"   &lt;-- IP ini akan dipakai untuk SSH dan GitHub Secret</pre>
+
+<div class="success"><strong>Hasil:</strong> VPC, Subnet, Internet Gateway, Route Table, Security Group (port 22, 80, 30080), dan EC2 Instance berhasil dibuat di AWS Singapore.</div>
+
+<h3>STEP 7: SSH ke EC2 dan Install Docker + K3d</h3>
+
+<p>SSH ke VM dari CMD (ganti IP dengan output Step 6):</p>
+
+<pre>ssh -i %USERPROFILE%\.ssh\vm-demo-key ubuntu@x.x.x.x</pre>
+
+<p>Setelah berhasil masuk VM, <strong>paste seluruh script berikut</strong> (satu kali paste):</p>
+
+<pre>curl -fsSL https://get.docker.com | sh &amp;&amp; \
+sudo usermod -aG docker $USER &amp;&amp; \
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash &amp;&amp; \
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" &amp;&amp; \
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl &amp;&amp; \
+rm kubectl &amp;&amp; \
+sudo systemctl enable docker &amp;&amp; \
+sudo systemctl start docker &amp;&amp; \
+sudo k3d cluster create mycluster --port "30080:30080@server:0" --agents 2 &amp;&amp; \
+mkdir -p ~/.kube &amp;&amp; \
+sudo k3d kubeconfig get mycluster &gt; ~/.kube/config &amp;&amp; \
+chmod 600 ~/.kube/config &amp;&amp; \
+echo 'export KUBECONFIG=/home/ubuntu/.kube/config' &gt;&gt; ~/.bashrc &amp;&amp; \
+export KUBECONFIG=/home/ubuntu/.kube/config &amp;&amp; \
+kubectl get nodes</pre>
+
+<p>Tunggu 2-3 menit. Expected output:</p>
+
+<pre>NAME                      STATUS   ROLES                  AGE   VERSION
+k3d-mycluster-server-0    Ready    control-plane,master   1m    v1.35.x
+k3d-mycluster-agent-0     Ready    &lt;none&gt;                 1m    v1.35.x
+k3d-mycluster-agent-1     Ready    &lt;none&gt;                 1m    v1.35.x</pre>
+
+<div class="success"><strong>Hasil:</strong> Docker, K3d, dan kubectl terinstall. K3d cluster berjalan dengan 1 server + 2 agent nodes.</div>
+
+<h3>STEP 8: Setup GitHub Secrets</h3>
+
+<p>Di repository GitHub yang sudah di-fork:</p>
+<p><strong>Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret</strong></p>
+
+<p>Tambahkan 4 secrets berikut:</p>
+
+<table>
+<tr><th>Secret Name</th><th>Value</th><th>Cara Mendapatkan</th></tr>
+<tr><td>EC2_HOST</td><td>IP publik EC2</td><td>Output dari Step 6 (<code>instance_public_ip</code>)</td></tr>
+<tr><td>EC2_SSH_KEY</td><td>Isi private key lengkap</td><td>Jalankan: <code>type %USERPROFILE%\.ssh\vm-demo-key</code><br>Copy SEMUA termasuk BEGIN/END</td></tr>
+<tr><td>DOCKERHUB_USERNAME</td><td>Username Docker Hub</td><td>Dari akun Docker Hub kamu</td></tr>
+<tr><td>DOCKERHUB_TOKEN</td><td>Access Token Docker Hub</td><td>Buat di: hub.docker.com &gt; Account Settings &gt; Security &gt; New Access Token</td></tr>
+</table>
+
+<h3>STEP 9: Update Docker Hub Username di Manifest</h3>
+
+<p>Edit file <code>k8s/deployment.yaml</code>, cari baris image dan ganti:</p>
+
+<pre>image: USERNAME_DOCKERHUB_ANDA/devops-demo-app:latest</pre>
+
+<h3>STEP 10: Push dan Trigger CI/CD Pipeline</h3>
+
+<pre>git add .
+git commit -m "setup: configure for deployment"
+git push</pre>
+
+<div class="success"><strong>Hasil:</strong> GitHub Actions akan otomatis:
+<ol>
+<li>Build Docker image dari <code>app/Dockerfile</code></li>
+<li>Push image ke Docker Hub dengan tag SHA commit (bukan latest)</li>
+<li>SSH ke EC2</li>
+<li>Update image tag di deployment manifest</li>
+<li>Apply Kubernetes manifests ke K3d cluster</li>
+</ol>
+</div>
+
+<p>Cek status di: <code>https://github.com/USERNAME/project-web-devops/actions</code></p>
+
+<h3>STEP 11: Verifikasi Deployment</h3>
+
+<p>Buka browser:</p>
+
+<pre>http://&lt;IP_EC2&gt;:30080</pre>
+
+<p>Atau dari dalam VM via SSH:</p>
+
+<pre>kubectl get pods
+kubectl get svc</pre>
+
+<p>Expected:</p>
+<pre>NAME                               READY   STATUS    RESTARTS   AGE
+devops-demo-app-xxxxx-xxxxx        1/1     Running   0          1m
+devops-demo-app-xxxxx-xxxxx        1/1     Running   0          1m
+devops-demo-app-xxxxx-xxxxx        1/1     Running   0          1m</pre>
+
+<h2>5. Struktur Project</h2>
+
+<pre>project-web-devops/
++-- .github/workflows/
+|   +-- deploy.yml              # CI/CD pipeline (GitHub Actions)
++-- app/
+|   +-- index.html              # Frontend (Meal Planner App)
+|   +-- style.css               # Styling (retro clean white theme)
+|   +-- app.js                  # Application logic + calorie reference
+|   +-- nginx.conf              # Nginx configuration
+|   +-- Dockerfile              # Container build (Nginx Alpine)
+|   +-- .dockerignore
++-- k8s/
+|   +-- deployment.yaml         # Kubernetes Deployment (3 replicas)
+|   +-- service.yaml            # NodePort Service (port 30080)
++-- terraform/
+|   +-- main.tf                 # VPC + SG + EC2 (generated via DevFormat)
+|   +-- variables.tf            # Input variables
+|   +-- outputs.tf              # Output values
+|   +-- terraform.tfvars        # Values - GITIGNORED
++-- scripts/
+|   +-- setup-vm.sh             # Script install Docker + K3d
++-- docs/
+|   +-- lab-guide.html          # Lab guide (dokumen ini)
++-- .gitignore
++-- README.md</pre>
+
+<h2>6. Cleanup - Hapus Semua Resource</h2>
+
+<div class="warning"><strong>PENTING:</strong> Selalu hapus resource AWS setelah selesai lab untuk menghindari biaya.</div>
+
+<p>Dari komputer lokal (CMD):</p>
+
+<pre>cd terraform
+terraform destroy -auto-approve</pre>
+
+<p>Verifikasi di AWS Console bahwa semua resource (EC2, VPC, SG) sudah terhapus.</p>
+
+<h2>7. Troubleshooting</h2>
+
+<table>
+<tr><th>Error</th><th>Penyebab</th><th>Solusi</th></tr>
+<tr><td>No valid credential sources found</td><td>AWS CLI belum dikonfigurasi</td><td>Jalankan <code>aws configure</code>, isi Access Key + Secret Key</td></tr>
+<tr><td>InvalidKey.Format</td><td>SSH key format salah</td><td>Generate ulang dengan <code>ssh-keygen -t ed25519</code></td></tr>
+<tr><td>Permission denied (publickey)</td><td>Path SSH key salah atau key tidak match</td><td>Gunakan format path Windows di CMD: <code>%USERPROFILE%\.ssh\vm-demo-key</code></td></tr>
+<tr><td>kubectl connection refused (port 8080)</td><td>KUBECONFIG belum di-set</td><td>Jalankan: <code>export KUBECONFIG=/home/ubuntu/.kube/config</code></td></tr>
+<tr><td>scp: No such file</td><td>Folder target belum ada di VM</td><td>SSH ke VM dan <code>mkdir -p /home/ubuntu/k8s</code></td></tr>
+<tr><td>K3d cluster lambat/hang</td><td>RAM tidak cukup</td><td>Gunakan minimal t3.medium (4GB RAM)</td></tr>
+<tr><td>Terraform provider download lama</td><td>AWS provider berukuran ~350MB</td><td>Tunggu 2-5 menit tergantung internet</td></tr>
+<tr><td>error loading kubeconfig: permission denied</td><td>kubeconfig milik root</td><td><code>sudo k3d kubeconfig get mycluster &gt; ~/.kube/config</code></td></tr>
+</table>
+
+<h2>8. Tools Pendukung - DevFormat</h2>
+
+<p>Website: <strong>https://devformat.com</strong></p>
+
+<p>Tools yang digunakan untuk generate konfigurasi dalam lab ini:</p>
+
+<table>
+<tr><th>Tool</th><th>Kegunaan dalam Lab</th><th>Output</th></tr>
+<tr><td>Terraform Generator</td><td>Generate infrastructure code untuk AWS VPC + EC2</td><td>main.tf, variables.tf, outputs.tf, terraform.tfvars</td></tr>
+<tr><td>Dockerfile Generator</td><td>Generate Dockerfile optimized untuk Nginx</td><td>Dockerfile (multi-stage, non-root user)</td></tr>
+<tr><td>Kubernetes Generator</td><td>Generate Deployment dan Service manifest</td><td>deployment.yaml, service.yaml</td></tr>
+</table>
+
+<p style="text-align:center; margin-top:30pt; color:#7f8c8d; font-size:9pt;">--- End of Lab Guide ---</p>
+
+</body>
+</html>
