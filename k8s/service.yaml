@@ -1,6 +1,3 @@
-# ============================================
-# service.yaml - Generated via DevFormat Kubernetes Generator
-# ============================================
 apiVersion: v1
 kind: Service
 metadata:
