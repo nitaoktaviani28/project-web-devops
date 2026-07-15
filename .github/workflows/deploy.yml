@@ -58,8 +58,8 @@ jobs:
 
       - name: Deploy to K3d via SSH
         run: |
-          ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/k8s"
-          scp -i ~/.ssh/deployer -r k8s/ ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/k8s/
+          ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} "rm -rf /home/ubuntu/k8s && mkdir -p /home/ubuntu/k8s"
+          scp -i ~/.ssh/deployer k8s/*.yaml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/k8s/
           ssh -i ~/.ssh/deployer ubuntu@${{ secrets.EC2_HOST }} << 'DEPLOY'
             sudo kubectl create secret docker-registry dockerhub-secret \
               --docker-server=https://index.docker.io/v1/ \
