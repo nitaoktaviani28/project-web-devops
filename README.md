@@ -4,7 +4,7 @@ Full DevOps pipeline project: **Terraform, Docker, K3d, GitHub Actions**.
 
 Aplikasi **Meal Planner** (jadwal makan mingguan) yang di-deploy otomatis ke Kubernetes cluster di AWS menggunakan CI/CD pipeline.
 
-![Meal Planner App](docs/app-screenshot.png)
+<img width="1894" height="856" alt="image" src="https://github.com/user-attachments/assets/e6a7d5f9-b49b-40af-ac73-a984986e550b" />
 
 ## Tools & Stack
 
