@@ -6,4 +6,4 @@ instance_type      = "t3.medium"
 
 tags = {}
 
-ssh_public_key = "ssh-ed25519 (isi) vm-demo"
+ssh_public_key = "GANTI_DENGAN_OUTPUT_DARI: type %USERPROFILE%\\.ssh\\vm-demo-key.pub"
