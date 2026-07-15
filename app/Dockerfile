@@ -1,6 +1,3 @@
-# ============================================
-# Dockerfile - Generated via DevFormat Style
-# ============================================
 # Base image: Nginx Alpine (lightweight)
 FROM nginx:1.27-alpine
 
